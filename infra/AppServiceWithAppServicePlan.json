@@ -1,0 +1,165 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "siteName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of azure web app"
+            }
+        },
+        "appServicePlanName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of hosting plan"
+            }
+        },
+        "skuName": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3"
+            ],
+            "defaultValue": "F1",
+            "metadata": {
+                "description": "SKU Name"
+            }
+        },
+        "use32BitWorkerProcess": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "use 32bits or 64bits. Must be true for Free plan"
+            }
+        },
+        "capacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "Current number of instances assigned to the resource."
+            }
+        },
+        "clientId": {
+            "type": "string",
+            "metadata": {
+                "description": "Client Id for Easy Auth configuration"
+            }
+        },
+        "clientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client Secret for Easy Auth configuration"
+            }
+        },
+        "tenantId": {
+            "type": "string",
+            "defaultValue": "[subscription().tenantId]",
+            "metadata": {
+                "description": "Id of the tenant for Easy Auth configuration"
+            }
+        },
+        "resourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "Id of the targeted resourcefor Easy Auth configuration"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {}
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "The region to deploy the resources into"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "2015-08-01",
+            "name": "[parameters('appServicePlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[parameters('location')]",
+            "properties": {
+                "name": "[parameters('appServicePlanName')]"
+            },
+            "sku": {
+                "name": "[parameters('skuName')]",
+                "capacity": "[parameters('capacity')]"
+            },
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "name": "[parameters('siteName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+            ],
+            "properties": {
+                "name": "[parameters('siteName')]",
+                "serverFarmId": "[parameters('appServicePlanName')]",
+                "httpsOnly": true
+            },
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "web",
+                    "type": "config",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+                    ],
+                    "properties": {
+                        "use32BitWorkerProcess": "[parameters('use32BitWorkerProcess')]",
+                        "phpVersion": "off",
+                        "netFrameworkVersion": "v4.7",
+                        "webSocketsEnabled": false,
+                        "requestTracingEnabled": true,
+                        "detailedErrorLoggingEnabled": true,
+                        "httpLoggingEnabled": true,
+                        "logsDirectorySizeLimit": 40,
+                        "remoteDebuggingEnabled": false,
+                        "ftpsState": "Disabled",
+                        "defaultDocuments": [],
+                        "siteAuthSettings": {
+                            "enabled": true,
+                            "defaultProvider": "AzureActiveDirectory",
+                            "unauthenticatedClientAction": "RedirectToLoginPage",
+                            "tokenStoreEnabled": true,
+                            "allowedExternalRedirectUrls": "[concat(parameters('siteName'),'.azurewebsites.net/.auth/login/aad/callback')]",
+                            "clientId": "[parameters('clientId')]",
+                            "clientSecret": "[parameters('clientSecret')]",
+                            "issuer": "[concat('https://sts.windows.net/',parameters('tenantId'),'/')]",
+                            "additionalLoginParams": [
+                                "response_type=code id_token",
+                                "[concat('resource='parameters('resourceId')"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "2014-11-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+                    ],
+                    "properties": {}
+                }
+            ]
+        }
+    ]
+}

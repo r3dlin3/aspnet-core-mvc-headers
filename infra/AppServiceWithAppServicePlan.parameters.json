@@ -1,0 +1,33 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "siteName": {
+      "value": "AppServiceWithAppServicePlan"
+    },
+    "appServicePlanName": {
+      "value": ""
+    },
+    "skuName": {
+      "value": "F1"
+    },
+    "use32BitWorkerProcess": {
+      "value": true
+    },
+    "capacity": {
+      "value": 1
+    },
+    "clientId": {
+      "value": ""
+    },
+    "clientSecret": {
+      "value": ""
+    },
+    "resourceId": {
+      "value": ""
+    },
+    "tags": {
+      "value": {}
+    }
+  }
+}
