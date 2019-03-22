@@ -2,7 +2,25 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div>
+    <h1 class="display-4 text-center">Headers</h1>
+    <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var hKey in Context.Request.Headers.Keys) {
+    <tr>
+      
+      <td>@hKey</td>
+      <td>@Context.Request.Headers[hKey]</td>
+    </tr>
+    }
+  </tbody>
+</table>
 </div>
+
+
